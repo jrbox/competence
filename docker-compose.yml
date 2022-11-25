@@ -36,6 +36,13 @@ services:
     environment:
       - MONGO_DB=personnes
       - EQUIPES_URL=http://equipes:3000/api/equipes
+  competences:
+    build: ./competences
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_DB=competences
+      - EQUIPES_URL=http://equipes:3000/api/equipes
   
   gateway:
     image: nginx
@@ -44,6 +51,7 @@ services:
     depends_on:
       - personnes
       - equipes
+      - competences
     volumes:
       - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf
 
