@@ -1,0 +1,49 @@
+# Liste des services docker
+services:
+  # Nom du service, il sera utiliser pour y faire reference dans les requetes du reseau docker
+  mongo:
+    # Image docker a utiliser, ici mongo
+    image: mongo
+    # Ports a ouvrir sur le reseau docker
+    volumes:
+      - ./db/mongo/data:/data/db
+      - ./db/mongo/init:/docker-entrypoint-initdb.d
+  # Un autre service pour avoir une UI de mongo
+  mongo-express:
+    # Image docker a utiliser, ici mongo-express
+    image: mongo-express
+    # Mongo-express a besoin d'attendre que mongo soit pret avant de se lancer
+    depends_on:
+      - mongo
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_SITE_BASEURL=/mongo
+  web:
+    image: nginx
+    volumes:
+    # <source local>:<dossier dans le container>
+    - ./web/index.html:/usr/share/nginx/html/index.html
+  equipes:
+    build: ./equipes
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_DB=equipes
+  personnes:
+    build: ./personnes
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_DB=personnes
+      - EQUIPES_URL=http://equipes:3000/api/equipes
+  
+  gateway:
+    image: nginx
+    ports:
+      - 80:80
+    depends_on:
+      - personnes
+      - equipes
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf
+
